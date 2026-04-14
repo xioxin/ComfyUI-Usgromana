@@ -245,13 +245,20 @@ class AccessControl:
                 self.__prompt_queue.history.pop(next(iter(self.__prompt_queue.history)))
             prompt_tuple = item[:-1] if isinstance(item[-1], dict) else item
             meta = item[-1] if isinstance(item[-1], dict) else {}
+            process_item = kwargs.get('process_item')
+            if process_item is not None:
+                prompt_tuple = process_item(prompt_tuple)
+            status = kwargs.get('status')
+            if status is not None and hasattr(status, '_asdict'):
+                status_dict = status._asdict()
+            elif status is not None:
+                status_dict = dict(status)
+            else:
+                status_dict = {"completed": None, "messages": None}
             self.__prompt_queue.history[prompt_tuple[1]] = {
                 "prompt": prompt_tuple,
                 "outputs": {},
-                "status": {
-                    "completed": kwargs.get("completed"),
-                    "messages": kwargs.get("messages"),
-                },
+                "status": status_dict,
                 "user_id": meta.get("user_id"),
             }
             if history_result:
